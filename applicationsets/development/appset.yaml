@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: development
+spec:
+  generators:
+  - git:
+      files:
+      - path: configurations/development/cluster-config.yaml
+      repoURL: https://github.com/cbagade/argocd-configurations
+      revision: configuration
+  template:
+    metadata:
+      name: '{{cluster.project_name}}'
+    spec:
+      project: '{{cluster.argocd_project}}'
+      destination:
+        namespace: '{{cluster.argocd_namespace}}'
+        server: https://kubernetes.default.svc
+      source:
+        path: applications
+        plugin:
+          name: argocd-vault-plugin-helm-custom        
+          env:
+          - name: HELM_VALUES
+            value: --values values.yaml
+          - name: HELM_ARGS
+            value: >-
+              --set helloworld_app.label_from_cluster={{helloworld_app.label_from_cluster}}
+              --set helloworld_app.replicas={{helloworld_app.replicas}}
+        repoURL: https://github.com/cbagade/argocd-code
+        targetRevision: 673cdd6ae8ceadb576bb2ce9ae4531a99c572fb5
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        retry:
+          limit: 3
+          backoff:
+            duration: 2m
+            factor: 3
+            maxDuration: 8m

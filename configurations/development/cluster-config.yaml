@@ -1,0 +1,15 @@
+cluster:
+  shortname: learnings
+  project_name: dev-applications
+  argocd_project: argo-learnings
+  argocd_namespace: argocd
+helloworld_app:
+  label_from_cluster: cluster-label-at-config
+  replicas: 3
+  resources:
+    limits:
+      cpu: '500m'
+      memory: '256Mi'
+    requests:
+      cpu: '100m'
+      memory: '128Mi'
